@@ -14,6 +14,10 @@ public class Deck {
     @JoinColumn(referencedColumnName = "id_usuario", nullable = false)
     private Usuario idUsuarioFk;
 
+//    @ManyToOne
+//    @JoinColumn(referencedColumnName = "id_usuario", nullable = false)
+//    private Usuario usuario;
+
 
     @Column(name = "nome", length = 150, nullable = false)
     private String nome;
