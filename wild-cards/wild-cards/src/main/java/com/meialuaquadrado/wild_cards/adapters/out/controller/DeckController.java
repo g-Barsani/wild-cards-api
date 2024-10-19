@@ -4,8 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meialuaquadrado.wild_cards.adapters.in.Card;
 import com.meialuaquadrado.wild_cards.adapters.in.Deck;
+import com.meialuaquadrado.wild_cards.adapters.in.Usuario;
 import com.meialuaquadrado.wild_cards.adapters.repositories.CardRepository;
 import com.meialuaquadrado.wild_cards.adapters.repositories.DeckRepository;
+import com.meialuaquadrado.wild_cards.adapters.repositories.UsuarioRepository;
+import com.meialuaquadrado.wild_cards.model.DeckDTO;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +24,10 @@ public class DeckController {
 
     @Autowired
     DeckRepository deckRepository;
+
+    @Autowired
+    UsuarioRepository usuarioRepository; // Adicionado para verificar o usuário
+
 
     @Autowired
     ObjectMapper objectMapper;
@@ -52,11 +60,24 @@ public class DeckController {
 
     // http://localhost:8080/decks/inserir
     @PostMapping("/inserirDeck")
-    public ResponseEntity<String> criarDeck(@RequestBody Deck novoDeck) {
-//        // Verifica se um deck com o mesmo nome já existe
-//        if (deckRepository.findByNome(novoDeck.getNome()).isPresent()) {
-//            return ResponseEntity.status(HttpStatus.CONFLICT).body("Já existe um deck com esse nome.");
-//        }
+    public ResponseEntity<String> criarDeck(@RequestBody DeckDTO novoDeckDTO) {
+        // Verifica se um deck com o mesmo nome já existe
+        if (deckRepository.findByNome(novoDeckDTO.getNome()).isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Já existe um deck com esse nome.");
+        }
+
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByIdUsuario(novoDeckDTO.getIdUsuarioFk());
+
+        if (!usuarioOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário com o ID fornecido não encontrado.");
+        }
+
+        Usuario usuario = usuarioOpt.get(); // Extraindo o objeto Usuario do Optional
+
+        // Cria um novo objeto Deck e associa o usuário encontrado
+        Deck novoDeck = new Deck();
+        novoDeck.setNome(novoDeckDTO.getNome());
+        novoDeck.setIdUsuarioFk(usuario); // Associa o usuário pelo ID
 
         // Salva o novo deck no repositório
         deckRepository.save(novoDeck);
@@ -104,6 +125,7 @@ public class DeckController {
 
     // http://localhost:8080/decks/deletarPorNome/{nome}
     @DeleteMapping("/deletarPorNome/{nome}")
+    @Transactional
     public ResponseEntity<String> deletarDeckPorNome(@PathVariable("nome") String nome) {
         Optional<Deck> deckOptional = deckRepository.findByNome(nome);
 

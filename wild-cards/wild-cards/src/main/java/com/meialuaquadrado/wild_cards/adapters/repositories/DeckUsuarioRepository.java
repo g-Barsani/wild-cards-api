@@ -23,9 +23,9 @@ public interface DeckUsuarioRepository extends JpaRepository<DeckUsuario, Intege
 
     // Método para buscar DeckUsuario por ID do usuário
     @Query("SELECT du FROM DeckUsuario du WHERE du.usuario.idUsuario = :idUsuario")
-    Optional<DeckUsuario> findByUsuarioId(Integer idUsuario);
+    List<DeckUsuario> findByUsuarioId(Integer idUsuario);
 
     // Método para buscar DeckUsuario por ID do deck
     @Query("SELECT du FROM DeckUsuario du WHERE du.deck.idDeck = :idDeck")
-    Optional<DeckUsuario> findByDeckId(Integer idDeck);
+    List<DeckUsuario> findByDeckId(Integer idDeck);
 }

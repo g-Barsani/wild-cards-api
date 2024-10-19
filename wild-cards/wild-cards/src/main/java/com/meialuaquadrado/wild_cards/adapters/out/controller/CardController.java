@@ -3,7 +3,10 @@ package com.meialuaquadrado.wild_cards.adapters.out.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.meialuaquadrado.wild_cards.adapters.in.Card;
+import com.meialuaquadrado.wild_cards.adapters.in.Deck;
 import com.meialuaquadrado.wild_cards.adapters.repositories.CardRepository;
+import com.meialuaquadrado.wild_cards.adapters.repositories.DeckRepository;
+import com.meialuaquadrado.wild_cards.model.CardDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,9 @@ public class CardController {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    DeckRepository deckRepository;
 
     // http://localhost:8080/cards/buscarTodos
     @GetMapping("/buscarTodos")
@@ -80,53 +86,57 @@ public class CardController {
 
     // http://localhost:8080/cards/inserir
     @PostMapping("/inserirCard")
-    public ResponseEntity<String> inserirCard(@RequestBody Card card) {
-        try {
-            // Verificar se já existe um card com a mesma pergunta ou resposta
-            Optional<Card> cardExistentePorPergunta = cardRepository.findByPergunta(card.getPergunta());
-
-
-            // Se já existir um card com a mesma pergunta ou resposta, retorna erro
-            if (cardExistentePorPergunta.isPresent()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Já existe um card com essa pergunta.");
-            }
-
-            // Salvar o novo card
-            cardRepository.save(card);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Card inserido com sucesso!");
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao inserir o card: " + e.getMessage());
+    public ResponseEntity<String> criarCard(@RequestBody CardDTO cardDTO) {
+        // Verificar se o deck associado existe
+        Optional<Deck> deckOpt = deckRepository.findById(cardDTO.getIdDeckFk());
+        if (!deckOpt.isPresent()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Deck não encontrado.");
         }
+
+        Optional<Card> cardExistente = cardRepository.findByPergunta(cardDTO.getPergunta());
+
+        if (cardExistente.isPresent() && cardExistente.get().getIdDeckFk().getIdDeck() == cardDTO.getIdDeckFk()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Já existe um Card com essa pergunta neste Deck.");
+        }
+
+        // Converter CardDTO em entidade Card
+        Card card = new Card();
+        card.setPergunta(cardDTO.getPergunta());
+        card.setResposta(cardDTO.getResposta());
+        card.setIdDeckFk(deckOpt.get()); // Associar o deck
+
+        // Salvar o novo card no repositório
+        cardRepository.save(card);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Card criado com sucesso.");
     }
 
 
-    // http://localhost:8080/cards/deletarPorPergunta/{pergunta}
-    @DeleteMapping("/deletarPorPergunta/{pergunta}")
-    public ResponseEntity<String> deletarPorPergunta(@PathVariable("pergunta") String pergunta) {
-        // Verifica se existe um card com a pergunta fornecida
-        Optional<Card> cardExistente = cardRepository.findByPergunta(pergunta);
-        if (cardExistente.isPresent()) {
-            cardRepository.deleteByPergunta(pergunta);
-            return ResponseEntity.ok("Card deletado com sucesso pela pergunta.");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum card encontrado com essa pergunta.");
-        }
-    }
-
-
-    // http://localhost:8080/cards/deletarPorResposta/{resposta}
-    @DeleteMapping("/deletarPorResposta/{resposta}")
-    public ResponseEntity<String> deletarPorResposta(@PathVariable("resposta") String resposta) {
-        // Verifica se existe um card com a resposta fornecida
-        Optional<Card> cardExistente = cardRepository.findByResposta(resposta);
-        if (cardExistente.isPresent()) {
-            cardRepository.deleteByResposta(resposta);
-            return ResponseEntity.ok("Card deletado com sucesso pela resposta.");
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum card encontrado com essa resposta.");
-        }
-    }
+//    // http://localhost:8080/cards/deletarPorPergunta/{pergunta}
+//    @DeleteMapping("/deletarPorPergunta/{pergunta}")
+//    public ResponseEntity<String> deletarPorPergunta(@PathVariable("pergunta") String pergunta) {
+//        // Verifica se existe um card com a pergunta fornecida
+//        Optional<Card> cardExistente = cardRepository.findByPergunta(pergunta);
+//        if (cardExistente.isPresent()) {
+//            cardRepository.deleteByPergunta(pergunta);
+//            return ResponseEntity.ok("Card deletado com sucesso pela pergunta.");
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum card encontrado com essa pergunta.");
+//        }
+//    }
+//
+//
+//    // http://localhost:8080/cards/deletarPorResposta/{resposta}
+//    @DeleteMapping("/deletarPorResposta/{resposta}")
+//    public ResponseEntity<String> deletarPorResposta(@PathVariable("resposta") String resposta) {
+//        // Verifica se existe um card com a resposta fornecida
+//        Optional<Card> cardExistente = cardRepository.findByResposta(resposta);
+//        if (cardExistente.isPresent()) {
+//            cardRepository.deleteByResposta(resposta);
+//            return ResponseEntity.ok("Card deletado com sucesso pela resposta.");
+//        } else {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum card encontrado com essa resposta.");
+//        }
+//    }
 
     // http://localhost:8080/cards/deletarPorId/{idCard}
     @DeleteMapping("/deletarPorId/{idCard}")

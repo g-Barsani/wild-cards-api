@@ -21,7 +21,8 @@ public class Usuario {
     @Column (name="senha", length = 20, nullable = false)
     private String senha;
 
-    @OneToMany(mappedBy = "usuario")  //
+    @JsonIgnore
+    @OneToMany(mappedBy = "usuario")
     private List<DeckUsuario> deckUsuarios;
 
     @Override

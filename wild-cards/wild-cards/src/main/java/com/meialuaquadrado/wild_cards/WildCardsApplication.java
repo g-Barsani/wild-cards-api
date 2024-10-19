@@ -9,5 +9,4 @@ public class WildCardsApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(WildCardsApplication.class, args);
 	}
-
 }

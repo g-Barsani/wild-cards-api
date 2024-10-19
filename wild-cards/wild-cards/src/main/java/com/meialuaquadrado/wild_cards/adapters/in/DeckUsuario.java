@@ -26,8 +26,8 @@ public class DeckUsuario {
     public String toString() {
         return "DeckUsuario{" +
                 "idDeckUsuario=" + idDeckUsuario +
-                ", usuario=" + usuario +
-                ", deck=" + deck +
+                ", usuario=" + (usuario != null ? usuario.getIdUsuario() : "null") +  // Evitar ciclo
+                ", deck=" + (deck != null ? deck.getIdDeck() : "null") +  // Evitar ciclo
                 '}';
     }
 

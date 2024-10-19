@@ -22,9 +22,7 @@ public interface CardRepository extends JpaRepository<Card, Integer> {
     @Override
     void deleteById(Integer id);
 
-    void deleteByPergunta(String pergunta);
-    void deleteByResposta(String resposta);
-
-
+//    void deleteByPergunta(String pergunta);
+//    void deleteByResposta(String resposta);
 
 }

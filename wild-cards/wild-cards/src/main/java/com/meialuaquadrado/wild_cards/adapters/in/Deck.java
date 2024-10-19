@@ -1,5 +1,6 @@
 package com.meialuaquadrado.wild_cards.adapters.in;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 
 @Entity
@@ -39,6 +40,14 @@ public class Deck {
         this.idDeck = idDeck;
     }
 
+    public Usuario getIdUsuarioFk() {
+        return idUsuarioFk;
+    }
+
+    public void setIdUsuarioFk(Usuario idUsuarioFk) {
+        this.idUsuarioFk = idUsuarioFk;
+    }
+
     public String getNome() {
         return nome;
     }
@@ -46,4 +55,7 @@ public class Deck {
     public void setNome(String nome) {
         this.nome = nome;
     }
+
+
+
 }
